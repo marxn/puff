@@ -1,8 +1,7 @@
-all: vascgen
-	@echo Making vascgen done.
-	@cp vascgen $(GOPATH)/bin
-vascgen: vascgen.go
-	@go build -o vascgen
+all: puff
+	@echo Making puff done.
+puff: puff.go
+	@go build -o puff
 clean:
 	@go clean -i
 
