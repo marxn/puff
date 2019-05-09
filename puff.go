@@ -215,14 +215,15 @@ func main() {
             if funcCall.Comment!=nil {
                 for _, comments := range funcCall.Comment {
                     defination := []byte(comments)
+                    funcName := fmt.Sprintf("%s:%s", packagePrefix, funcCall.FuncName)
                     if string(defination[0:7])=="HANDLER" {
-                        handlerHolder = append(handlerHolder, string(defination[7:]) + fmt.Sprintf(", \"route_handler\": \"%s:%s\"", packagePrefix, funcCall.FuncName))
+                        handlerHolder = append(handlerHolder, string(defination[7:]) + fmt.Sprintf(", \"route_handler\": \"%s\"", funcName))
                     } else if string(defination[0:10])=="MIDDLEWARE" {
-                        groupHolder = append(groupHolder, string(defination[10:]) + fmt.Sprintf(", \"middleware\": \"%s:%s\"", packagePrefix, funcCall.FuncName))
+                        groupHolder = append(groupHolder, string(defination[10:]) + fmt.Sprintf(", \"middleware\": \"%s\"", funcName))
                     } else if string(defination[0:8])=="SCHEDULE" {
-                        scheduleHolder = append(scheduleHolder, string(defination[8:]) + fmt.Sprintf(", \"handler\": \"%s:%s\"", packagePrefix, funcCall.FuncName))
+                        scheduleHolder = append(scheduleHolder, string(defination[8:]) + fmt.Sprintf(", \"handler\": \"%s\", \"schedule_key\": \"%s\"", funcName, funcName))
                     } else if string(defination[0:4])=="TASK" {
-                        taskHolder = append(taskHolder, string(defination[4:]) + fmt.Sprintf(", \"handler\": \"%s:%s\"", packagePrefix, funcCall.FuncName))
+                        taskHolder = append(taskHolder, string(defination[4:]) + fmt.Sprintf(", \"handler\": \"%s\", \"task_key\":\"%s\"", funcName, funcName))
                     }
                 }
             }
