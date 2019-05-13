@@ -294,8 +294,13 @@ func main() {
 	source += fmt.Sprintf("    }\n")
 	source += fmt.Sprintf("    defer vasc.Close()\n")
 	source += fmt.Sprintf("\n")
-	source += fmt.Sprintf("    vasc.StartService()\n")
-	source += fmt.Sprintf("    vasc.Wait()\n")
+	source += fmt.Sprintf("    err = vasc.StartService()\n")
+	source += fmt.Sprintf("    if err!=nil {\n")
+	source +=             "        vasc.ErrorLog(\"Starting service failed: %s\", err.Error())\n"
+	source += fmt.Sprintf("        return\n")
+	source += fmt.Sprintf("    } else {\n")
+	source += fmt.Sprintf("        vasc.Wait()\n")
+	source += fmt.Sprintf("    }\n")
 	source += fmt.Sprintf("}\n")
 
 	err = ioutil.WriteFile(*output, []byte(source), 0666)
