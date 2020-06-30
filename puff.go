@@ -27,16 +27,8 @@ type directoryInfo struct {
     NeedExport    bool
 }
 
-func ExecShellCmd(s string) (string, error) {
-    cmd := exec.Command("/bin/bash", "-c", s)
-    var out bytes.Buffer
-    cmd.Stdout = &out
-    err := cmd.Run()
-    return out.String(), err
-}
-
 func emptyDir(path string) bool {
-    cmd := fmt.Sprintf("find %s -name '*.go'", path)
+    cmd := fmt.Sprintf("cd ..;find %s -name '*.go'", path)
     ret, err := ExecShellCmd(cmd)
     if err!=nil {
         return true
@@ -48,9 +40,10 @@ func emptyDir(path string) bool {
 }
 
 func getDirList(path string) ([]string, error) {
-    cmd := fmt.Sprintf("find %s -type d", path)
+    cmd := fmt.Sprintf("cd ..;find %s -type d", path)
     ret, err := ExecShellCmd(cmd)
     if err!=nil {
+        fmt.Println(err)
         return nil, err
     } 
     
@@ -60,11 +53,12 @@ func getDirList(path string) ([]string, error) {
             result = append(result, value)
         }
     }
+    
     return result, nil
 }
 
 func getFileList(path string) ([]string, error) {
-    cmd := fmt.Sprintf("find %s -maxdepth 1 -name '*.go'", path)
+    cmd := fmt.Sprintf("cd ..;find %s -maxdepth 1 -name '*.go'", path)
     ret, err := ExecShellCmd(cmd)
     if err!=nil {
         return nil, err
@@ -73,7 +67,7 @@ func getFileList(path string) ([]string, error) {
     var result []string
     for _, value := range strings.Split(ret, "\n") {
         if value!="" {
-            result = append(result, value)
+            result = append(result, "../" + value)
         }
     }
     
@@ -150,6 +144,14 @@ func qualifyPath(path string) string {
     return seg[len(seg) - 1]
 }
 
+func ExecShellCmd(s string) (string, error) {
+    cmd := exec.Command("/bin/bash", "-c", s)
+    var out bytes.Buffer
+    cmd.Stdout = &out
+    err := cmd.Run()
+    return out.String(), err
+}
+
 func replacePackagePath(path string) string {
     return strings.Replace(path, "/", "_", -1 )
 }
@@ -160,20 +162,28 @@ func main() {
     var taskHolder     []string
     var groupHolder   []string
     
-    input              := flag.String("i", "", "input source file directory")
+    input, _           := os.Getwd()
+    output             := input
+    
     vascConfigFileName := flag.String("c", "", "vasc config file")
-    output             := flag.String("o", "", "output source file path")
     
     flag.Parse()
 
-    if *input == "" || *output == "" {
+    if *vascConfigFileName == "" {
         fmt.Println("invalid arguments")
         return
     }
-
+    
+    projectName, err := ExecShellCmd("basename " + input)
+    if err!=nil {
+        panic(err)
+    }
+    
+    projectName = strings.TrimSpace(projectName)
+    
     sourceInfo := make(map[string]*directoryInfo)
     
-    dirList, err := getDirList(*input)
+    dirList, err := getDirList(projectName)
     if err!=nil {
         panic(err)
     }
@@ -226,7 +236,7 @@ func main() {
                         scheduleHolder = append(scheduleHolder, string(defination[8:]) + fmt.Sprintf(", \"handler\": \"%s\", \"schedule_key\": \"%s\"", funcName, funcName))
                     } else if string(defination[0:4])=="TASK" {
                         taskHolder = append(taskHolder, string(defination[4:]) + fmt.Sprintf(", \"handler\": \"%s\", \"task_key\":\"%s\"", funcName, funcName))
-                        exportTask = append(exportTask, fmt.Sprintf("const %s_%s = \"%s\"", packagePrefix,  funcCall.FuncName, funcName))
+                        exportTask = append(exportTask, fmt.Sprintf("const %s = \"%s\"", funcCall.FuncName, funcName))
                     }
                 }
             }
@@ -306,12 +316,12 @@ func main() {
     source += fmt.Sprintf("    }\n")
     source += fmt.Sprintf("}\n")
 
-    err = ioutil.WriteFile(*output + "/puff_main.go", []byte(source), 0666)
+    err = ioutil.WriteFile(output + "/puff_main.go", []byte(source), 0666)
     if err != nil {
         fmt.Println("Cannot write output file:" + err.Error())
         os.Exit(-1)
     }
-    
+    /* 
     if len(exportTask) > 0 {
         sdkSource := fmt.Sprintf("package task\n\n")
         
@@ -319,7 +329,7 @@ func main() {
             sdkSource += fmt.Sprintf("%s\n", exportTaskItem)
         }
         
-        sdkPath := fmt.Sprintf("%s/task", *output)
+        sdkPath := fmt.Sprintf("%s/task", output)
         err := os.MkdirAll(sdkPath,os.ModePerm)
         if err != nil {
             fmt.Println("Cannot make task directory: " + err.Error())
@@ -332,6 +342,6 @@ func main() {
             os.Exit(-1)
         }
     }
-    
-    fmt.Printf("%s finished.\n", *output)
+    */
+    fmt.Printf("%s finished.\n", output)
 }
