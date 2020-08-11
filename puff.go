@@ -227,7 +227,6 @@ func main() {
             source += fmt.Sprintf("    \"%s:%s\": %s.%s,\n", packagePrefix, funcCall.FuncName, packagePrefix, funcCall.FuncName)
             if funcCall.Comment!=nil {
                 for _, comments := range funcCall.Comment {
-                    fmt.Println(comments)
                     defination := []byte(comments)
                     funcName := fmt.Sprintf("%s:%s", packagePrefix, funcCall.FuncName)
                     if string(defination[0:7])=="HANDLER" {
