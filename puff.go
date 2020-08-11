@@ -162,6 +162,7 @@ func main() {
     var taskHolder     []string
     var groupHolder    []string
     var initHolder       string
+    var bootstrapHolder  string
     
     input, _           := os.Getwd()
     output             := input
@@ -240,6 +241,8 @@ func main() {
                         exportTask = append(exportTask, fmt.Sprintf("const %s = \"%s\"", funcCall.FuncName, funcName))
                     } else if string(defination[0:4])=="INIT" {
                         initHolder = fmt.Sprintf("%s.%s", packagePrefix, funcCall.FuncName)
+                    } else if string(defination[0:9])=="BOOTSTRAP" {
+                        bootstrapHolder = fmt.Sprintf("%s.%s", packagePrefix, funcCall.FuncName)
                     }
                 }
             }
@@ -308,7 +311,11 @@ func main() {
     source += fmt.Sprintf("        panic(err)\n")
     source += fmt.Sprintf("        return\n")
     source += fmt.Sprintf("    }\n")
-    source += fmt.Sprintf("    defer vasc.Close()\n")
+    source += fmt.Sprintf("    defer vasc.Close()\n\n")
+    source += fmt.Sprintf("    if vasc.GetMode() == \"bootstrap\" {\n")
+    source += fmt.Sprintf("        %s()\n", bootstrapHolder)
+    source += fmt.Sprintf("        return\n")
+    source += fmt.Sprintf("    }\n")
     source += fmt.Sprintf("\n")
     if initHolder != "" {
         source += fmt.Sprintf("    vasc.SetInitializer(%s)\n", initHolder)
@@ -317,9 +324,8 @@ func main() {
     source += fmt.Sprintf("    if err!=nil {\n")
     source +=             "        vasc.ErrorLog(\"Starting service failed: %s\", err.Error())\n"
     source += fmt.Sprintf("        return\n")
-    source += fmt.Sprintf("    } else {\n")
-    source += fmt.Sprintf("        vasc.Wait()\n")
-    source += fmt.Sprintf("    }\n")
+    source += fmt.Sprintf("    }\n\n")
+    source += fmt.Sprintf("    vasc.Wait()\n")
     source += fmt.Sprintf("}\n")
 
     err = ioutil.WriteFile(output + "/puff_main.go", []byte(source), 0666)
@@ -327,27 +333,6 @@ func main() {
         fmt.Println("Cannot write output file:" + err.Error())
         os.Exit(-1)
     }
-    /* 
-    if len(exportTask) > 0 {
-        sdkSource := fmt.Sprintf("package task\n\n")
-        
-        for _, exportTaskItem := range exportTask {
-            sdkSource += fmt.Sprintf("%s\n", exportTaskItem)
-        }
-        
-        sdkPath := fmt.Sprintf("%s/task", output)
-        err := os.MkdirAll(sdkPath,os.ModePerm)
-        if err != nil {
-            fmt.Println("Cannot make task directory: " + err.Error())
-            os.Exit(-1)
-        }
-        
-        err = ioutil.WriteFile(sdkPath + "/PuffConstant.go", []byte(sdkSource), 0666)
-        if err != nil {
-            fmt.Println("Cannot create constant file: " + err.Error())
-            os.Exit(-1)
-        }
-    }
-    */
+    
     fmt.Printf("%s finished.\n", output)
 }
