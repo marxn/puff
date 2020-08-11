@@ -119,7 +119,7 @@ func getExportFuncList(fileList []string) ([]funcItem, error) {
                 if doc!=nil {
                     for _, docItem := range doc.List {
                         headByte := []byte(docItem.Text)
-                        if string(headByte[0:3])=="///" && len(headByte[3:]) > 8 {
+                        if string(headByte[0:3])=="///" {
                             if funcDesc.Comment==nil {
                                 funcDesc.Comment = make([]string, 0)
                             }
@@ -160,7 +160,8 @@ func main() {
     var handlerHolder  []string
     var scheduleHolder []string
     var taskHolder     []string
-    var groupHolder   []string
+    var groupHolder    []string
+    var initHolder       string
     
     input, _           := os.Getwd()
     output             := input
@@ -226,6 +227,7 @@ func main() {
             source += fmt.Sprintf("    \"%s:%s\": %s.%s,\n", packagePrefix, funcCall.FuncName, packagePrefix, funcCall.FuncName)
             if funcCall.Comment!=nil {
                 for _, comments := range funcCall.Comment {
+                    fmt.Println(comments)
                     defination := []byte(comments)
                     funcName := fmt.Sprintf("%s:%s", packagePrefix, funcCall.FuncName)
                     if string(defination[0:7])=="HANDLER" {
@@ -237,6 +239,8 @@ func main() {
                     } else if string(defination[0:4])=="TASK" {
                         taskHolder = append(taskHolder, string(defination[4:]) + fmt.Sprintf(", \"handler\": \"%s\", \"task_key\":\"%s\"", funcName, funcName))
                         exportTask = append(exportTask, fmt.Sprintf("const %s = \"%s\"", funcCall.FuncName, funcName))
+                    } else if string(defination[0:4])=="INIT" {
+                        initHolder = fmt.Sprintf("%s.%s", packagePrefix, funcCall.FuncName)
                     }
                 }
             }
@@ -307,6 +311,9 @@ func main() {
     source += fmt.Sprintf("    }\n")
     source += fmt.Sprintf("    defer vasc.Close()\n")
     source += fmt.Sprintf("\n")
+    if initHolder != "" {
+        source += fmt.Sprintf("    vasc.SetInitializer(%s)\n", initHolder)
+    }
     source += fmt.Sprintf("    err = vasc.StartService()\n")
     source += fmt.Sprintf("    if err!=nil {\n")
     source +=             "        vasc.ErrorLog(\"Starting service failed: %s\", err.Error())\n"
