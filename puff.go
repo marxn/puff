@@ -312,10 +312,12 @@ func main() {
     source += fmt.Sprintf("        return\n")
     source += fmt.Sprintf("    }\n")
     source += fmt.Sprintf("    defer vasc.Close()\n\n")
-    source += fmt.Sprintf("    if vasc.GetMode() == \"bootstrap\" {\n")
-    source += fmt.Sprintf("        %s()\n", bootstrapHolder)
-    source += fmt.Sprintf("        return\n")
-    source += fmt.Sprintf("    }\n")
+    if bootstrapHolder != "" {
+        source += fmt.Sprintf("    if vasc.GetMode() == \"bootstrap\" {\n")
+        source += fmt.Sprintf("        %s()\n", bootstrapHolder)
+        source += fmt.Sprintf("        return\n")
+        source += fmt.Sprintf("    }\n")
+    }
     source += fmt.Sprintf("\n")
     if initHolder != "" {
         source += fmt.Sprintf("    vasc.SetInitializer(%s)\n", initHolder)
