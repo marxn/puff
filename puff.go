@@ -327,7 +327,7 @@ func main() {
     }
     source += fmt.Sprintf("    err = vasc.StartService()\n")
     source += fmt.Sprintf("    if err!=nil {\n")
-    source += fmt.Sprintf("        logger.ErrorLog(\"Starting service failed: %v\", err)\n")
+    source +=             "        logger.ErrorLog(\"Starting service failed: %v\", err)\n"
     source += fmt.Sprintf("        return\n")
     source += fmt.Sprintf("    }\n\n")
     source += fmt.Sprintf("    vasc.Wait()\n")
