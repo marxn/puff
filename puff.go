@@ -214,7 +214,7 @@ func main() {
     source := fmt.Sprintf("//Vasc generated code. Do not modify.\n\npackage main\n\n")
     source += fmt.Sprintf("import \"github.com/marxn/vasc\"\n")
     source += fmt.Sprintf("import \"github.com/marxn/vasc/global\"\n")
-    source += fmt.Sprintf("import \"github.com/marxn/vasc/logger\"")
+    source += fmt.Sprintf("import \"github.com/marxn/vasc/logger\"\n")
     
     for _, value := range sourceInfo {
         if value.NeedExport {
