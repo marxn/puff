@@ -211,7 +211,10 @@ func main() {
         sourceInfo[value] = dirInfo
     }
     
-    source := fmt.Sprintf("//Vasc generated code. Do not modify.\n\npackage main\n\nimport \"github.com/marxn/vasc\"\nimport \"github.com/marxn/vasc/global\"\n")
+    source := fmt.Sprintf("//Vasc generated code. Do not modify.\n\npackage main\n\n")
+    source += fmt.Sprintf("import \"github.com/marxn/vasc\"\n")
+    source += fmt.Sprintf("import \"github.com/marxn/vasc/global\"\n")
+    source += fmt.Sprintf("import \"github.com/marxn/vasc/logger\"")
     
     for _, value := range sourceInfo {
         if value.NeedExport {
@@ -324,7 +327,7 @@ func main() {
     }
     source += fmt.Sprintf("    err = vasc.StartService()\n")
     source += fmt.Sprintf("    if err!=nil {\n")
-    source +=             "        vasc.ErrorLog(\"Starting service failed: %s\", err.Error())\n"
+    source += fmt.Sprintf("        logger.ErrorLog(\"Starting service failed: %v\", err)\n")
     source += fmt.Sprintf("        return\n")
     source += fmt.Sprintf("    }\n\n")
     source += fmt.Sprintf("    vasc.Wait()\n")
